@@ -3,7 +3,7 @@ import numpy as np
 
 
 def load_graph_from_csv(filename: str) -> nx.Graph:
-    data = np.loadtxt(filename, delimiter=",", skiprows=1, dtype=np.str)
+    data = np.loadtxt(filename, delimiter=",", dtype=np.str)
 
     data_jch = ["jch_%s" % jch for jch in data[:, 0]]
     data_wo = ["wo_%s" % wo for wo in data[:, 1]]
@@ -17,8 +17,7 @@ def load_graph_from_csv(filename: str) -> nx.Graph:
     graph.add_nodes_from(data_no, type="NO", color='yellow')
     graph.add_nodes_from(data_o, type="O", color='blue')
 
-    graph.add_edges_from(zip(data_jch, data_o))
     graph.add_edges_from(zip(data_wo, data_o))
     graph.add_edges_from(zip(data_no, data_o))
-
+    graph.add_edges_from(zip(data_jch, data_o))
     return graph
