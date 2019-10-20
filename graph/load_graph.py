@@ -17,7 +17,8 @@ def load_graph_from_csv(filename: str) -> nx.Graph:
     graph.add_nodes_from(data_no, type="NO", color='yellow')
     graph.add_nodes_from(data_o, type="O", color='blue')
 
-    graph.add_edges_from(zip(data_wo, data_o))
-    graph.add_edges_from(zip(data_no, data_o))
-    graph.add_edges_from(zip(data_jch, data_o))
+    graph.add_edges_from(zip(data_wo, data_o), weight=1.)
+    graph.add_edges_from(zip(data_no, data_o), weight=1.)
+    graph.add_edges_from(zip(data_jch, data_o), weight=1.)
+
     return graph
