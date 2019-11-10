@@ -3,7 +3,7 @@ import pickle
 from keras_preprocessing.sequence import skipgrams
 
 import node2vec
-from data_encoding import encode_labels
+from data_encoding import to_integers
 from graph.load_graph import load_graph_from_csv
 
 
@@ -19,7 +19,7 @@ def create_dataset_skipgrams(graph_filename):
     walks = node2vec_g.simulate_walks(10, 80)
 
     print("Encoding to integers")
-    walks_encoded = encode_labels(g.nodes, walks)
+    walks_encoded = to_integers(g.nodes, walks)
 
     print("Generating skipgrams")
 

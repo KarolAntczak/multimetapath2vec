@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
 
-def encode_labels(all_labels, data):
+def to_integers(all_labels, data):
     """
     Encode data into vectors of integers based on labels
     :param all_labels: list of all possible labels
@@ -19,3 +19,26 @@ def encode_labels(all_labels, data):
 
     data_encoded = np.asarray(data_encoded)
     return data_encoded
+
+
+def to_binary(data, max_value):
+    """
+    Convert vectors of numbers into binary vectors,
+    with ones at indices specified by these numbers.
+
+    :param data: list of vectors containing numbers
+    :return: list of binary vectors
+    """
+    max_value
+    encoded_data = []
+
+    for row in data:
+        encoded_row = np.zeros(max_value+1)
+        encoded_row[row] = 1.
+        encoded_data.append(encoded_row)
+    encoded_data = np.asarray(encoded_data)
+    return encoded_data
+
+
+
+

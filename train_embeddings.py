@@ -7,7 +7,7 @@ from tensorflow_core.python.keras.layers.merge import dot
 
 from tensorflow_core.python.keras.models import Model
 
-pairs, labels = pickle.load(open("data/dane_small.csv.pickle", 'rb'))
+pairs, labels = pickle.load(open("data/dane.csv.pickle", 'rb'))
 
 pairs = np.asarray(pairs)
 labels = np.asarray(labels)
@@ -33,10 +33,13 @@ output = Dense(1, activation='sigmoid')(dot_product)
 model = Model(inputs=[input_target, input_context], outputs=output)
 model.compile(loss='binary_crossentropy', optimizer='rmsprop')
 model.summary()
-model.fit(x=[targets, contexts], y=labels, batch_size=32, epochs=1, validation_split=0.0)
+history = model.fit(x=[targets, contexts], y=labels, batch_size=1, epochs=1, validation_split=0.0)
 
 print("Saving the embeddings layer")
 
 weights = model.get_layer("embedding").get_weights()[0]
 
 np.savetxt("models\\embeddings_%d_to_%d.csv" % (vocab_size, vector_dim), weights)
+
+with open('models\\embedding_history', 'wb') as file_pi:
+    pickle.dump(history.history, file_pi)
