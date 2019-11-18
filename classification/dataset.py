@@ -37,7 +37,6 @@ def create_dataset_classification(graph_filename, labels_filename):
     pickle.dump((nodes, labels), open(file=graph_filename + "_classification.pickle", mode='wb'))
 
 
-
 def load_data(filename):
     x_data, y_data = pickle.load(open(filename, 'rb'))
     y_data = to_binary(y_data, np.amax(y_data))

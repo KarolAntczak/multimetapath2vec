@@ -4,8 +4,8 @@ import numpy
 from sklearn.metrics import f1_score
 from sklearn.model_selection import KFold
 
-from classification import model_with_embeddings, model_with_onehot
-from classification.classification_dataset import load_data
+from classification.dataset import load_data
+from classification.model import create_model
 
 n_split = 10
 epochs = 100
@@ -15,26 +15,25 @@ vector_dim = 100
 data_file = "../data/dane.csv_classification.pickle"
 
 x_data, y_data = load_data(filename=data_file)
-load_model = None
 
 print("Inputs shape %s" % (x_data.shape,))
 print("Outputs shape %s" % (y_data.shape,))
 
 for algorithm in ["multimetapath2vec", "metapath2vec", "node2vec", "onehot"]:
+    print("Algorithm: %s" % algorithm)
     if algorithm == "onehot":
-        load_model = partial(model_with_onehot.load_model, input_size=vocab_size, hidden_size=vector_dim,
-                             output_size=y_data.shape[1])
+        embeddings_file = None
     else:
         embeddings_file = "..\\models\\embeddings_%s_%d_to_%d.csv" % (algorithm, vocab_size, vector_dim)
-        load_model = partial(model_with_embeddings.load_model, embeddings_file=embeddings_file,
-                             output_size=y_data.shape[1])
 
+    load_model = partial(create_model, input_size=vocab_size, hidden_size=vector_dim, output_size=y_data.shape[1],
+                         embeddings_file=embeddings_file)
     total_results = []
     for missing_percentage in range(0, 100, 10):
-        print("%d%% missing data" % missing_percentage)
+        print("\t%d%% missing data" % missing_percentage)
         results = []
         for idx, (train_index, test_index) in enumerate(KFold(n_split, shuffle=True, random_state=42).split(x_data)):
-            print("\tFold %d/%d" % (idx + 1, n_split))
+            print("\t\tFold %d/%d" % (idx + 1, n_split))
             x_train, x_test = x_data[train_index], x_data[test_index]
             y_train, y_test = y_data[train_index], y_data[test_index]
 
