@@ -1,12 +1,13 @@
 import pickle
-import numpy as np
-from sklearn.model_selection import train_test_split
 
-from data_encoding import to_integers
+import numpy as np
+from sklearn.utils import shuffle
+
+from data_encoding import to_integers, to_binary
 from graph.load_graph import load_graph_from_csv
 
 
-def create_dataset_classification(graph_filename, labels_filename, train_size  = 0.8):
+def create_dataset_classification(graph_filename, labels_filename):
     """
     Create dataset for node classification task.
 
@@ -28,14 +29,20 @@ def create_dataset_classification(graph_filename, labels_filename, train_size  =
     nodes = to_integers(g.nodes, nodes)
     labels = to_integers(list(labels_dict.values()), labels)
 
-    nodes_train, nodes_test, labels_train, labels_test = train_test_split(nodes, labels, train_size=train_size, random_state=42)
-    assert len(nodes_train) == len(labels_train)
-    assert len(nodes_test) == len(labels_test)
+    nodes, labels = shuffle(nodes, labels, random_state=42)
+    assert len(nodes) == len(labels)
 
-    print("Saving dataset. Train size: %d Test size: %d" % (len(nodes_train), len(nodes_test)))
+    print("Saving dataset. Size: %d" % len(nodes))
 
-    pickle.dump((nodes_train, labels_train, nodes_test, labels_test), open(file=graph_filename + "_classification.pickle", mode='wb'))
+    pickle.dump((nodes, labels), open(file=graph_filename + "_classification.pickle", mode='wb'))
+
+
+
+def load_data(filename):
+    x_data, y_data = pickle.load(open(filename, 'rb'))
+    y_data = to_binary(y_data, np.amax(y_data))
+    return x_data, y_data
 
 
 if __name__ == '__main__':
-    create_dataset_classification("./data/dane.csv", "./data/dictionaries/jednostki_chorobowe_icd_grupa.csv")
+    create_dataset_classification("../data/dane.csv", "../data/dictionaries/jednostki_chorobowe_icd_grupa.csv")
