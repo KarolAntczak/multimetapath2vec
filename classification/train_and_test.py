@@ -52,8 +52,8 @@ for algorithm in ["multimetapath2vec", "metapath2vec", "node2vec", "onehot"]:
             y_pred_bool = numpy.argmax(y_pred, axis=1)
             y_test_bool = numpy.argmax(y_test, axis=1)
 
-            f1_micro = f1_score(y_test_bool, y_pred_bool, average='micro', labels=numpy.unique(y_pred))  # accuracy
-            f1_macro = f1_score(y_test_bool, y_pred_bool, average='macro', labels=numpy.unique(y_pred))
+            f1_micro = f1_score(y_test_bool, y_pred_bool, average='micro', labels=numpy.unique(y_pred_bool))  # accuracy
+            f1_macro = f1_score(y_test_bool, y_pred_bool, average='macro', labels=numpy.unique(y_pred_bool))
 
             results.append((f1_micro, f1_macro))
 
