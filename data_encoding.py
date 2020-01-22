@@ -14,10 +14,12 @@ def to_integers(all_labels, data):
     label_encoder.fit(all_labels)
     data_encoded = []
     for row in data:
-        walk_encoded = label_encoder.transform(row)
-        data_encoded.append(walk_encoded)
+        row_encoded = label_encoder.transform(row)
+        data_encoded.append(row_encoded)
 
+        assert len(row_encoded) == len(row)
     data_encoded = np.asarray(data_encoded)
+
     return data_encoded
 
 
@@ -29,7 +31,6 @@ def to_binary(data, max_value):
     :param data: list of vectors containing numbers
     :return: list of binary vectors
     """
-    max_value
     encoded_data = []
 
     for row in data:

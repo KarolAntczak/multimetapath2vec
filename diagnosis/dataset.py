@@ -4,7 +4,7 @@ import numpy as np
 from networkx import Graph
 from sklearn.utils import shuffle
 
-from data_encoding import to_integers
+from data_encoding import to_integers, to_binary
 from graph.load_graph import load_graph_from_csv
 
 
@@ -16,76 +16,82 @@ def create_dataset_diagnosis(graph_filename, number_of_cases):
     :param graph_filename: name of file containing graph
     """
     g = load_graph_from_csv(graph_filename)
-    all_cases = dict()
-    all_labels = dict()
+    all_train_cases = dict()
+    all_train_labels = dict()
+    all_val_cases = dict()
+    all_val_labels = dict()
+    all_diseases = [node for node in g.nodes if g.nodes[node]['type'] == "JCH"]
 
-    for missing_percentage in np.arange(99.99, 100., 0.1):
-        cases = []
-        labels = []
+    for missing_percentage in range(90, 100, 1):
 
-        for node_id in g.nodes():
-            node = g.nodes[node_id]
+        subgraph = get_subgraph(g, missing_percentage)
 
-            if node["type"] == "JCH":
-                cases += create_cases(g, node_id, positive=True, number_of_cases=number_of_cases, missing_percentage=missing_percentage)
-                cases += create_cases(g, node_id, positive=False, number_of_cases=number_of_cases, missing_percentage=missing_percentage)
-                labels += np.ones(number_of_cases).tolist()
-                labels += np.zeros(number_of_cases).tolist()
+        all_train_cases[missing_percentage] = []
+        all_train_labels[missing_percentage] = []
+        all_val_cases[missing_percentage] = []
+        all_val_labels[missing_percentage] = []
 
+        for disease_id in all_diseases:
 
+            if disease_id in subgraph.nodes:
+                train_cases, train_labels = create_cases(subgraph, disease_id, number_of_cases)
+            else:
+                train_cases = []
+                train_labels = []
 
-        cases = to_integers(g.nodes, cases)
+            val_cases, val_labels = create_cases(g, disease_id, number_of_cases)
 
-        labels = np.asarray(labels)
-        cases, labels = shuffle(cases, labels, random_state=42)
-        assert len(cases) == len(labels)
+            train_cases = to_integers(g.nodes, train_cases)
+            train_labels = to_integers(all_diseases, train_labels)
+            val_cases = to_integers(g.nodes, val_cases)
+            val_labels = to_integers(all_diseases, val_labels)
 
-        all_cases[missing_percentage] = cases
-        all_labels[missing_percentage] = labels
+            all_train_cases[missing_percentage].extend(train_cases)
+            all_train_labels[missing_percentage].extend(train_labels)
+            all_val_cases[missing_percentage].extend(val_cases)
+            all_val_labels[missing_percentage].extend(val_labels)
 
-        print(cases.shape)
-        print(" %f %d" %(missing_percentage , np.count_nonzero(cases)))
+        all_train_cases[missing_percentage], all_train_labels[missing_percentage] = shuffle(all_train_cases[missing_percentage], all_train_labels[missing_percentage])
+        all_val_cases[missing_percentage], all_val_labels[missing_percentage] = shuffle(all_val_cases[missing_percentage], all_val_labels[missing_percentage])
+
+        print(" %d%%\ttrain: %d val: %d" %(missing_percentage , len(all_train_cases[missing_percentage]), len(all_val_cases[missing_percentage])))
 
     print("Saving dataset. Cases per disease: %d" % number_of_cases)
 
-    pickle.dump((all_cases, all_labels), open(file=graph_filename + "_3_diagnosis.pickle", mode='wb'))
+    pickle.dump((all_train_cases, all_train_labels, all_val_cases, all_val_labels), open(file=graph_filename + "_diagnosis.pickle", mode='wb'))
 
 
-def create_cases(g: Graph, disease_id, number_of_cases, positive=True, missing_percentage=0):
+def create_cases(g: Graph, disease_id, number_of_cases):
     cases = []
+    symptoms = [neighbor for neighbor in g.neighbors(disease_id) if g.nodes[neighbor]['type'] == "O"]
+    labels = []
 
-    max_length = len([node for node in g.nodes if g.nodes[node]['type'] == "O"])
-    other_diseases = [node for node in g.nodes if g.nodes[node]['type'] == "JCH"]
-    other_diseases.remove(disease_id)
+    if not symptoms:
+        return cases, labels
 
     for i in range(0, number_of_cases):
-        if positive:
-            case = [disease_id]
-        else:
-            case = np.random.choice(other_diseases, 1).tolist()
-        case += _get_random_associated_symptoms(g, disease_id, missing_percentage).tolist()
-        case = np.pad(case, (0, max_length - len(case)), pad_with)
-
+        number_of_symptoms = min(max(1, len(symptoms)), 10)
+        case = np.random.choice(symptoms, number_of_symptoms, replace=False)
         cases.append(case)
-    return cases
+        labels.append([disease_id])
+
+    return cases, labels
+
+def get_subgraph(g : Graph, missing_percentage) -> Graph :
+    subgraph = g.copy()
+    all_nodes_count = len(subgraph.nodes)
+    to_delete_count = int(all_nodes_count * (missing_percentage/100))
+    to_delete_nodes = np.random.choice(subgraph.nodes, to_delete_count)
+    subgraph.remove_nodes_from(to_delete_nodes)
+    return subgraph
 
 
-def pad_with(vector, pad_width, iaxis, kwargs):
-    pad_value = kwargs.get('padder', 'empty')
-    vector[:pad_width[0]] = pad_value
-    vector[-pad_width[1]:] = pad_value
-    return vector
 
-
-def _get_random_associated_symptoms(g: Graph, disease_id: int, missing_percentage):
-    symptoms = [neighbor for neighbor in g.neighbors(disease_id) if g.nodes[neighbor]['type'] == "O"]
-    number_of_symptoms = int(len(symptoms) * ((100 - missing_percentage) / 100))
-    return np.random.choice(symptoms, number_of_symptoms)
 
 def load_data(filename):
-    x_data, y_data = pickle.load(open(filename, 'rb'))
-    return x_data, y_data
+    x_train, y_train, x_val, y_val = pickle.load(open(filename, 'rb'))
+    return x_train, y_train, x_val, y_val
 
 
 if __name__ == '__main__':
-    create_dataset_diagnosis("../data/dane.csv", number_of_cases=10)
+    create_dataset_diagnosis("../data/dane.csv", number_of_cases=100)

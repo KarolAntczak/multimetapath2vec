@@ -8,7 +8,7 @@ from tensorflow_core.python.keras.layers.merge import dot
 
 from tensorflow_core.python.keras.models import Model
 
-algorithm = "metapath2vec"
+algorithm = "node2vec"
 vector_dim = 100
 train_size = 1000000
 

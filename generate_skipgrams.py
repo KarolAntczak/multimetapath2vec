@@ -9,7 +9,7 @@ from data_encoding import to_integers
 from graph.load_graph import load_graph_from_csv
 
 
-def generate_skipgrams(graph_filename, algorithm="node2vec"):
+def generate_skipgrams(graph_filename, algorithm):
     """
     Create dataset with skipgrams from random walking.
 
@@ -55,4 +55,4 @@ def generate_skipgrams(graph_filename, algorithm="node2vec"):
 
 
 if __name__ == '__main__':
-    generate_skipgrams("./data/dane.csv", algorithm="metapath2vec")
+    generate_skipgrams("./data/dane.csv", algorithm="node2vec")
